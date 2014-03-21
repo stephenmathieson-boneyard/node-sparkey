@@ -19,5 +19,16 @@
   "gypfile": true,
   "devDependencies": {
     "mocha": "~1.18.2"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stephenmathieson/node-sparkey.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stephenmathieson/node-sparkey/issues"
+  },
+  "homepage": "https://github.com/stephenmathieson/node-sparkey"
 }
