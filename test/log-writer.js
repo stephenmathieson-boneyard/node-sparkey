@@ -55,6 +55,75 @@ describe('LogWriter', function () {
     });
   });
 
+  describe('#append', function () {
+    after(function () {
+      rm(log);
+    });
+
+    it('should not create a new log', function (done) {
+      try { rm(log); } catch (e) {}
+      var writer = new LogWriter(log);
+      writer.append(function (err) {
+        assert(err);
+        assert(!fs.existsSync(log));
+        done();
+      });
+    });
+
+    it('should open an existing log for appending', function (done) {
+      try { rm(log); } catch (e) {}
+
+      // create dummy log
+      var writer1 = new LogWriter(log);
+      writer1.openSync();
+      writer1.putSync('key_0', 'value_0');
+      writer1.closeSync();
+
+      // append dummy log
+      var writer2 = new LogWriter(log);
+      writer2.append(function (err) {
+        assert.ifError(err);
+        writer2.putSync('key_1', 'value_1');
+        writer2.close(done);
+      });
+    });
+  });
+
+  describe('#appendSync', function () {
+    after(function () {
+      rm(log);
+    });
+
+    it('should not create a new log', function () {
+      try { rm(log); } catch (e) {}
+
+      var err;
+      var writer = new LogWriter(log);
+      try {
+        writer.appendSync();
+      } catch (e) {
+        err = e;
+      }
+      assert(err);
+    });
+
+    it('should open an existing log for appending', function () {
+      try { rm(log); } catch (e) {}
+
+      // create dummy log
+      var writer1 = new LogWriter(log);
+      writer1.openSync();
+      writer1.putSync('key_0', 'value_0');
+      writer1.closeSync();
+
+      // append dummy log
+      var writer2 = new LogWriter(log);
+      writer2.appendSync();
+      writer2.putSync('key_1', 'value_1');
+      writer2.closeSync();
+    });
+  });
+
   describe('#put', function () {
     beforeEach(function () {
       try { rm(log); } catch (e) {}

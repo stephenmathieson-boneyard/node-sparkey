@@ -24,6 +24,9 @@ namespace sparkey {
       static NAN_METHOD(Open);
       static NAN_METHOD(OpenSync);
 
+      static NAN_METHOD(Append);
+      static NAN_METHOD(AppendSync);
+
       static NAN_METHOD(Put);
       static NAN_METHOD(PutSync);
 

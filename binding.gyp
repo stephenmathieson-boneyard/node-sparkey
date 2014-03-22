@@ -11,10 +11,13 @@
       "sources": [
         "src/sparkey.cc",
         "src/hash.cc",
+
         "src/writer/writer.cc",
-        "src/writer/put.cc",
-        "src/writer/close.cc",
-        "src/writer/open.cc",
+        "src/writer/put-worker.cc",
+        "src/writer/close-worker.cc",
+        "src/writer/open-worker.cc",
+        "src/writer/append-worker.cc",
+
         "src/reader/reader.cc",
         "src/reader/close.cc",
         "src/reader/open.cc",

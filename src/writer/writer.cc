@@ -3,9 +3,10 @@
 #include <nan.h>
 #include <sparkey.h>
 #include "writer.h"
-#include "put.h"
-#include "close.h"
-#include "open.h"
+#include "put-worker.h"
+#include "close-worker.h"
+#include "open-worker.h"
+#include "append-worker.h"
 
 namespace sparkey {
   v8::Persistent<v8::FunctionTemplate> LogWriter::constructor;
@@ -36,6 +37,9 @@ namespace sparkey {
     NODE_SET_PROTOTYPE_METHOD(tpl, "open", Open);
     NODE_SET_PROTOTYPE_METHOD(tpl, "openSync", OpenSync);
 
+    NODE_SET_PROTOTYPE_METHOD(tpl, "append", Append);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "appendSync", AppendSync);
+
     exports->Set(NanSymbol("LogWriter"), constructor->GetFunction());
   }
 
@@ -61,39 +65,74 @@ namespace sparkey {
       fn = args[0].As<v8::Function>();
     }
 
-    bool use_snappy = NanBooleanOptionValue(options
+    bool use_snappy = NanBooleanOptionValue(
+        options
       , NanSymbol("useSnappy")
-      , true);
+      , true
+    );
     sparkey_compression_type compression_type = use_snappy
       ? SPARKEY_COMPRESSION_SNAPPY
       : SPARKEY_COMPRESSION_NONE;
     // TODO this really should be an option
     int block_size = 10;
-
-    sparkey::LogWriterOpen(self
-      , compression_type
+    WriterOpenWorker *worker = new WriterOpenWorker(
+        self
       , block_size
-      , new NanCallback(fn));
+      , compression_type
+      , new NanCallback(fn)
+    );
+    NanAsyncQueueWorker(worker);
     NanReturnUndefined();
   }
-
 
   NAN_METHOD(LogWriter::OpenSync) {
     NanScope();
     LogWriter *self = node::ObjectWrap::Unwrap<LogWriter>(args.This());
     v8::Local<v8::Object> options = v8::Local<v8::Object>::Cast(args[0]);
-    bool use_snappy = NanBooleanOptionValue(options
+    bool use_snappy = NanBooleanOptionValue(
+        options
       , NanSymbol("useSnappy")
-      , true);
+      , true
+    );
     sparkey_compression_type compression_type = use_snappy
       ? SPARKEY_COMPRESSION_SNAPPY
       : SPARKEY_COMPRESSION_NONE;
     // TODO option
     int block_size = 10;
-
-    sparkey::LogWriterOpenSync(self
+    sparkey_returncode rc = sparkey_logwriter_create(
+        &self->writer
+      , self->path
       , compression_type
-      , block_size);
+      , block_size
+    );
+    if (SPARKEY_SUCCESS != rc) {
+      NanThrowError(sparkey_errstring(rc));
+    }
+    NanReturnUndefined();
+  }
+
+  NAN_METHOD(LogWriter::Append) {
+    NanScope();
+    LogWriter *self = node::ObjectWrap::Unwrap<LogWriter>(args.This());
+    v8::Local<v8::Function> fn = args[0].As<v8::Function>();
+    WriterAppendWorker *worker = new WriterAppendWorker(
+        self
+      , new NanCallback(fn)
+    );
+    NanAsyncQueueWorker(worker);
+    NanReturnUndefined();
+  }
+
+  NAN_METHOD(LogWriter::AppendSync) {
+    NanScope();
+    LogWriter *self = node::ObjectWrap::Unwrap<LogWriter>(args.This());
+    sparkey_returncode rc = sparkey_logwriter_append(
+        &self->writer
+      , self->path
+    );
+    if (SPARKEY_SUCCESS != rc) {
+      NanThrowError(sparkey_errstring(rc));
+    }
     NanReturnUndefined();
   }
 
@@ -105,12 +144,15 @@ namespace sparkey {
     char *key = NanCString(args[0], &keysize);
     char *value = NanCString(args[1], &valuesize);
     v8::Local<v8::Function> fn = args[2].As<v8::Function>();
-    sparkey::LogWriterPut(self
+    WriterPutWorker *worker = new WriterPutWorker(
+        self
       , key
       , keysize
       , value
       , valuesize
-      , new NanCallback(fn));
+      , new NanCallback(fn)
+    );
+    NanAsyncQueueWorker(worker);
     NanReturnUndefined();
   }
 
@@ -121,7 +163,20 @@ namespace sparkey {
     size_t valuesize;
     char *key = NanCString(args[0], &keysize);
     char *value = NanCString(args[1], &valuesize);
-    sparkey::LogWriterPutSync(self, key, keysize, value, valuesize);
+    sparkey_returncode rc = sparkey_logwriter_put(
+        self->writer
+      , keysize
+      , (uint8_t *) key
+      , valuesize
+      , (uint8_t *) value
+    );
+
+    delete key;
+    delete value;
+
+    if (SPARKEY_SUCCESS != rc) {
+      NanThrowError(sparkey_errstring(rc));
+    }
     NanReturnUndefined();
   }
 
@@ -129,14 +184,21 @@ namespace sparkey {
     NanScope();
     LogWriter *self = node::ObjectWrap::Unwrap<LogWriter>(args.This());
     v8::Local<v8::Function> fn = args[0].As<v8::Function>();
-    sparkey::LogWriterClose(self, new NanCallback(fn));
+    WriterCloseWorker *worker = new WriterCloseWorker(
+        self
+      , new NanCallback(fn)
+    );
+    NanAsyncQueueWorker(worker);
     NanReturnUndefined();
   }
 
   NAN_METHOD(LogWriter::CloseSync) {
     NanScope();
     LogWriter *self = node::ObjectWrap::Unwrap<LogWriter>(args.This());
-    sparkey::LogWriterCloseSync(self);
+    sparkey_returncode rc = sparkey_logwriter_close(&self->writer);
+    if (SPARKEY_SUCCESS != rc) {
+      NanThrowError(sparkey_errstring(rc));
+    }
     NanReturnUndefined();
   }
 }
