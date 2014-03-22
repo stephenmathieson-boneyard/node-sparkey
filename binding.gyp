@@ -10,6 +10,7 @@
       ],
       "sources": [
         "src/sparkey.cc",
+        "src/hash.cc",
         "src/writer/writer.cc",
         "src/writer/put.cc",
         "src/writer/close.cc",

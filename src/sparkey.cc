@@ -4,11 +4,13 @@
 #include "writer/writer.h"
 #include "reader/reader.h"
 #include "reader/iterator.h"
+#include "hash.h"
 
 void
 InitSparkey(v8::Handle<v8::Object> exports) {
   sparkey::LogWriter::Init(exports);
   sparkey::LogReader::Init(exports);
+  sparkey::InitHash(exports);
   sparkey::LogReaderIterator::Init();
 }
 
