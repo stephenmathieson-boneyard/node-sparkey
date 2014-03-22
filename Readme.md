@@ -49,6 +49,18 @@
 
   Synchronously open the `LogWriter`.
 
+#### LogWriter#append(fn)
+
+  Open the `LogWriter` for appending, invoking `fn(err)`.
+
+  Will error if the log does not exist.
+
+#### LogWriter#appendSync()
+
+  Synchronously open the `LogWriter` for append.
+
+  Will throw if the log does not exist.
+
 #### LogWriter#close(fn)
 
   Close the `LogWriter`, invoking `fn(err)`.
@@ -64,6 +76,14 @@
 #### LogWriter#putSync(key, value)
 
   Synchronously put `key = value`.
+
+### sparkey.hash(log, hash, fn)
+
+  Convert the given `log` to a `hash`, invoking `fn(err)`.
+
+### sparkey.hashSync(log, hash)
+
+  Synchronously convert the given `log` to a `hash`.
 
 ## License
 
