@@ -4,7 +4,7 @@
 #include <nan.h>
 #include "reader.h"
 #include "iterator.h"
-#include "iterator-next.h"
+#include "workers.h"
 
 namespace sparkey {
   v8::Persistent<v8::FunctionTemplate> LogReaderIterator::constructor;
@@ -21,13 +21,14 @@ namespace sparkey {
     NanAssignPersistent(v8::FunctionTemplate, constructor, tpl);
     tpl->SetClassName(NanSymbol("LogReaderIterator"));
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "end", LogReaderIterator::End);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "next", LogReaderIterator::Next);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "end", End);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "next", Next);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "skip", Skip);
   }
 
   NAN_METHOD(LogReaderIterator::New) {
     NanScope();
-    LogReader *reader = node::ObjectWrap::Unwrap<LogReader>(
+    LogReader *reader = ObjectWrap::Unwrap<LogReader>(
       args[0]->ToObject()
     );
     LogReaderIterator *self = new LogReaderIterator;
@@ -43,7 +44,7 @@ namespace sparkey {
 
   NAN_METHOD(LogReaderIterator::End) {
     NanScope();
-    LogReaderIterator *self = node::ObjectWrap::Unwrap<LogReaderIterator>(
+    LogReaderIterator *self = ObjectWrap::Unwrap<LogReaderIterator>(
       args.This()
     );
     sparkey_logiter_close(&self->iterator);
@@ -52,11 +53,31 @@ namespace sparkey {
 
   NAN_METHOD(LogReaderIterator::Next) {
     NanScope();
-    LogReaderIterator *self = node::ObjectWrap::Unwrap<LogReaderIterator>(
+    LogReaderIterator *self = ObjectWrap::Unwrap<LogReaderIterator>(
       args.This()
     );
     v8::Local<v8::Function> fn = args[0].As<v8::Function>();
-    sparkey::LogReaderIteratorNext(self, new NanCallback(fn));
+    LogReaderIteratorNextWorker *worker = new LogReaderIteratorNextWorker(
+        self
+      , new NanCallback(fn)
+    );
+    NanAsyncQueueWorker(worker);
+    NanReturnUndefined();
+  }
+
+  NAN_METHOD(LogReaderIterator::Skip) {
+    NanScope();
+    LogReaderIterator *self = ObjectWrap::Unwrap<LogReaderIterator>(
+      args.This()
+    );
+    int number = args[0]->NumberValue();
+    v8::Local<v8::Function> fn = args[1].As<v8::Function>();
+    LogReaderIteratorSkipWorker *worker = new LogReaderIteratorSkipWorker(
+        self
+      , number
+      , new NanCallback(fn)
+    );
+    NanAsyncQueueWorker(worker);
     NanReturnUndefined();
   }
 

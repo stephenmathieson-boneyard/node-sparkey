@@ -74,47 +74,67 @@ describe('LogReader', function () {
       writer.closeSync();
     });
 
-    it('should get the next key/value', function (done) {
-      var reader = new LogReader(log);
-      reader.open(function (err) {
-        assert.ifError(err);
-        var iterator = reader.iterator();
-        iterator.next(function (err, key, value) {
+    describe('#next', function () {
+      it('should get the next key/value', function (done) {
+        var reader = new LogReader(log);
+        reader.open(function (err) {
           assert.ifError(err);
-          assert.equal('key0', key);
-          assert.equal('value0', value);
+          var iterator = reader.iterator();
           iterator.next(function (err, key, value) {
             assert.ifError(err);
-            assert.equal('key1', key);
-            assert.equal('value1', value);
-            iterator.end();
-            reader.close(done);
+            assert.equal('key0', key);
+            assert.equal('value0', value);
+            iterator.next(function (err, key, value) {
+              assert.ifError(err);
+              assert.equal('key1', key);
+              assert.equal('value1', value);
+              iterator.end();
+              reader.close(done);
+            });
           });
+        });
+      });
+
+      it('should provide NULLs when all keys have been seen', function (done) {
+        var reader = new LogReader(log);
+        reader.open(function (err) {
+          assert.ifError(err);
+          var iterator = reader.iterator();
+          var count = 0;
+
+          iterator.next(next);
+
+          function next(err, key, value) {
+            if (100 == count) {
+              assert(null === key);
+              assert(null === value);
+              iterator.end();
+              return reader.close(done);
+            }
+            assert.equal('key' + count, key);
+            assert.equal('value' + count, value);
+            count++;
+            iterator.next(next);
+          }
         });
       });
     });
 
-    it('should provide NULLs when all keys have been seen', function (done) {
-      var reader = new LogReader(log);
-      reader.open(function (err) {
-        assert.ifError(err);
+    describe('#skip', function () {
+      it('should skip N keys in the log', function (done) {
+        var reader = new LogReader(log);
+        reader.openSync();
         var iterator = reader.iterator();
-        var count = 0;
-
-        iterator.next(next);
-
-        function next(err, key, value) {
-          if (100 == count) {
-            assert(null === key);
-            assert(null === value);
+        iterator.skip(10, function (err) {
+          assert.ifError(err);
+          iterator.next(function (err, key, value) {
+            assert.ifError(err);
+            assert.equal('key10', key);
+            assert.equal('value10', value);
             iterator.end();
-            return reader.close(done);
-          }
-          assert.equal('key' + count, key);
-          assert.equal('value' + count, value);
-          count++;
-          iterator.next(next);
-        }
+            reader.close(done);
+          });
+        });
       });
     });
   });

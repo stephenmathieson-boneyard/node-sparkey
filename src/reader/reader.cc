@@ -3,8 +3,7 @@
 #include <nan.h>
 #include <sparkey.h>
 #include "reader.h"
-#include "close.h"
-#include "open.h"
+#include "workers.h"
 #include "iterator.h"
 
 namespace sparkey {
@@ -51,31 +50,42 @@ namespace sparkey {
 
   NAN_METHOD(LogReader::Close) {
     NanScope();
-    LogReader *self = node::ObjectWrap::Unwrap<LogReader>(args.This());
+    LogReader *self = ObjectWrap::Unwrap<LogReader>(args.This());
     v8::Local<v8::Function> fn = args[0].As<v8::Function>();
-    sparkey::LogReaderClose(self, new NanCallback(fn));
+    LogReaderCloseWorker *worker = new LogReaderCloseWorker(
+        self
+      , new NanCallback(fn)
+    );
+    NanAsyncQueueWorker(worker);
     NanReturnUndefined();
   }
 
   NAN_METHOD(LogReader::CloseSync) {
     NanScope();
-    LogReader *self = node::ObjectWrap::Unwrap<LogReader>(args.This());
-    LogReaderCloseSync(self);
+    LogReader *self = ObjectWrap::Unwrap<LogReader>(args.This());
+    sparkey_logreader_close(&self->reader);
     NanReturnUndefined();
   }
 
   NAN_METHOD(LogReader::Open) {
     NanScope();
-    LogReader *self = node::ObjectWrap::Unwrap<LogReader>(args.This());
+    LogReader *self = ObjectWrap::Unwrap<LogReader>(args.This());
     v8::Local<v8::Function> fn = args[0].As<v8::Function>();
-    sparkey::LogReaderOpen(self, new NanCallback(fn));
+    LogReaderOpenWorker *worker = new LogReaderOpenWorker(
+        self
+      , new NanCallback(fn)
+    );
+    NanAsyncQueueWorker(worker);
     NanReturnUndefined();
   }
 
   NAN_METHOD(LogReader::OpenSync) {
     NanScope();
-    LogReader *self = node::ObjectWrap::Unwrap<LogReader>(args.This());
-    LogReaderOpenSync(self);
+    LogReader *self = ObjectWrap::Unwrap<LogReader>(args.This());
+    sparkey_returncode rc = sparkey_logreader_open(&self->reader, self->path);
+    if (SPARKEY_SUCCESS != rc) {
+      NanThrowError(sparkey_errstring(rc));
+    }
     NanReturnUndefined();
   }
 

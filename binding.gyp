@@ -19,10 +19,8 @@
         "src/writer/append-worker.cc",
 
         "src/reader/reader.cc",
-        "src/reader/close.cc",
-        "src/reader/open.cc",
         "src/reader/iterator.cc",
-        "src/reader/iterator-next.cc",
+        "src/reader/workers.cc",
       ],
     }
   ]
