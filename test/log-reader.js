@@ -1,7 +1,7 @@
 
 var sparkey = require('..');
-var TYPE_PUT = sparkey.ITERATOR_ENTRY_PUT;
-var TYPE_DELETE = sparkey.ITERATOR_ENTRY_DELETE;
+var TYPE_PUT = sparkey.SPARKEY_ENTRY_PUT;
+var TYPE_DELETE = sparkey.SPARKEY_ENTRY_DELETE;
 var LogReader = sparkey.LogReader;
 var LogWriter = sparkey.LogWriter;
 var path = require('path');

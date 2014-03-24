@@ -55,7 +55,7 @@ namespace sparkey {
       LogReaderIterator *self;
       char *key;
       char *value;
-      IteratorEntryType type;
+      sparkey_entry_type type;
   };
 
   class LogReaderIteratorSkipWorker : public NanAsyncWorker {

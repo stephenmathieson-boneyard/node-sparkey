@@ -112,9 +112,7 @@ namespace sparkey {
     }
     // TODO assert(actual_keylen == wanted_keylen)
 
-    type = SPARKEY_ENTRY_PUT == sparkey_logiter_type(self->iterator)
-      ? ITERATOR_ENTRY_PUT
-      : ITERATOR_ENTRY_DELETE;
+    type = sparkey_logiter_type(self->iterator);
     key = (char *) keybuffer;
     value = (char *) valuebuffer;
   }
