@@ -1,5 +1,7 @@
 
 var sparkey = require('..');
+var TYPE_PUT = sparkey.ITERATOR_ENTRY_PUT;
+var TYPE_DELETE = sparkey.ITERATOR_ENTRY_DELETE;
 var LogReader = sparkey.LogReader;
 var LogWriter = sparkey.LogWriter;
 var path = require('path');
@@ -80,14 +82,16 @@ describe('LogReader', function () {
         reader.open(function (err) {
           assert.ifError(err);
           var iterator = reader.iterator();
-          iterator.next(function (err, key, value) {
+          iterator.next(function (err, key, value, type) {
             assert.ifError(err);
             assert.equal('key0', key);
             assert.equal('value0', value);
-            iterator.next(function (err, key, value) {
+            assert.equal(TYPE_PUT, type);
+            iterator.next(function (err, key, value, type) {
               assert.ifError(err);
               assert.equal('key1', key);
               assert.equal('value1', value);
+              assert.equal(TYPE_PUT, type);
               iterator.end();
               reader.close(done);
             });
@@ -104,10 +108,11 @@ describe('LogReader', function () {
 
           iterator.next(next);
 
-          function next(err, key, value) {
+          function next(err, key, value, type) {
             if (100 == count) {
               assert(null === key);
               assert(null === value);
+              assert(null === type);
               iterator.end();
               return reader.close(done);
             }

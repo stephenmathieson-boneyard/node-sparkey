@@ -7,6 +7,12 @@
 #include "reader.h"
 
 namespace sparkey {
+
+  typedef enum {
+      ITERATOR_ENTRY_PUT = 1
+    , ITERATOR_ENTRY_DELETE = 2
+  } IteratorEntryType;
+
   class LogReaderIterator : public node::ObjectWrap {
     public:
       static v8::Persistent<v8::FunctionTemplate> constructor;

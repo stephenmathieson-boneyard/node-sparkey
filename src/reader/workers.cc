@@ -95,6 +95,7 @@ namespace sparkey {
       errmsg = strdup(sparkey_errstring(rc));
       return;
     }
+    // TODO assert(actual_keylen == wanted_keylen)
 
     rc = sparkey_logiter_fill_value(
         self->iterator
@@ -109,7 +110,11 @@ namespace sparkey {
       errmsg = strdup(sparkey_errstring(rc));
       return;
     }
+    // TODO assert(actual_keylen == wanted_keylen)
 
+    type = SPARKEY_ENTRY_PUT == sparkey_logiter_type(self->iterator)
+      ? ITERATOR_ENTRY_PUT
+      : ITERATOR_ENTRY_DELETE;
     key = (char *) keybuffer;
     value = (char *) valuebuffer;
   }
@@ -117,22 +122,24 @@ namespace sparkey {
   void
   LogReaderIteratorNextWorker::HandleOKCallback() {
     if (key && value) {
-      v8::Local<v8::Value> argv[3] = {
+      v8::Local<v8::Value> argv[4] = {
           v8::Local<v8::Value>::New(v8::Null())
         , v8::Local<v8::Value>::New(v8::String::New(key))
         , v8::Local<v8::Value>::New(v8::String::New(value))
+        , v8::Local<v8::Value>::New(v8::Number::New(type))
       };
-      callback->Call(3, argv);
+      callback->Call(4, argv);
       return;
     }
 
     // no keys left
-    v8::Local<v8::Value> argv[3] = {
+    v8::Local<v8::Value> argv[4] = {
         v8::Local<v8::Value>::New(v8::Null())
       , v8::Local<v8::Value>::New(v8::Null())
       , v8::Local<v8::Value>::New(v8::Null())
+      , v8::Local<v8::Value>::New(v8::Null())
     };
-    callback->Call(3, argv);
+    callback->Call(4, argv);
     return;
   }
 
