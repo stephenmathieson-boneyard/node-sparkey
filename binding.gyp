@@ -13,10 +13,7 @@
         "src/hash.cc",
 
         "src/writer/writer.cc",
-        "src/writer/put-worker.cc",
-        "src/writer/close-worker.cc",
-        "src/writer/open-worker.cc",
-        "src/writer/append-worker.cc",
+        "src/writer/workers.cc",
 
         "src/reader/reader.cc",
         "src/reader/iterator.cc",

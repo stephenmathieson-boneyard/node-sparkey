@@ -3,10 +3,7 @@
 #include <nan.h>
 #include <sparkey.h>
 #include "writer.h"
-#include "put-worker.h"
-#include "close-worker.h"
-#include "open-worker.h"
-#include "append-worker.h"
+#include "workers.h"
 
 namespace sparkey {
   v8::Persistent<v8::FunctionTemplate> LogWriter::constructor;
