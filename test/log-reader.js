@@ -142,5 +142,28 @@ describe('LogReader', function () {
         });
       });
     });
+
+    describe('#isActive', function () {
+      it('should return true if the iterator is active', function (done) {
+        var reader = new LogReader(log);
+        reader.openSync();
+        var iterator = reader.iterator();
+        iterator.next(function (err) {
+          assert.ifError(err);
+          assert(iterator.isActive());
+          iterator.end();
+          reader.close(done);
+        });
+      });
+
+      it('should return false if the iterator is not active', function () {
+        var reader = new LogReader(log);
+        reader.openSync();
+        var iterator = reader.iterator();
+        assert(!iterator.isActive());
+        iterator.end();
+        reader.closeSync();
+      });
+    });
   });
 });

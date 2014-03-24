@@ -24,6 +24,7 @@ namespace sparkey {
     NODE_SET_PROTOTYPE_METHOD(tpl, "end", End);
     NODE_SET_PROTOTYPE_METHOD(tpl, "next", Next);
     NODE_SET_PROTOTYPE_METHOD(tpl, "skip", Skip);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "isActive", IsActive);
   }
 
   NAN_METHOD(LogReaderIterator::New) {
@@ -79,6 +80,17 @@ namespace sparkey {
     );
     NanAsyncQueueWorker(worker);
     NanReturnUndefined();
+  }
+
+  NAN_METHOD(LogReaderIterator::IsActive) {
+    NanScope();
+    LogReaderIterator *self = ObjectWrap::Unwrap<LogReaderIterator>(
+      args.This()
+    );
+    bool is_active = SPARKEY_ITER_ACTIVE == sparkey_logiter_state(
+      self->iterator
+    );
+    NanReturnValue(v8::Boolean::New(is_active));
   }
 
   v8::Local<v8::Object>

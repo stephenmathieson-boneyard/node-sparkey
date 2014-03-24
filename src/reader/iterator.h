@@ -23,6 +23,7 @@ namespace sparkey {
       static NAN_METHOD(End);
       static NAN_METHOD(Next);
       static NAN_METHOD(Skip);
+      static NAN_METHOD(IsActive);
   };
 }
 

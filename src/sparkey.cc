@@ -13,6 +13,8 @@ InitSparkey(v8::Handle<v8::Object> exports) {
   sparkey::LogReader::Init(exports);
   sparkey::InitHash(exports);
   sparkey::LogReaderIterator::Init();
+
+  // export iterator entry types
   exports->Set(
       NanSymbol("SPARKEY_ENTRY_PUT")
     , v8::Number::New(SPARKEY_ENTRY_PUT)
