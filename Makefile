@@ -1,6 +1,6 @@
 
 BINS = node_modules/.bin
-SRC = $(wildcard src/*/*.*) $(deps/**/*.*)
+SRC = $(wildcard src/*.*) $(wildcard src/*/*.*) $(deps/**/*.*)
 
 build: $(SRC)
 	@node-gyp rebuild
