@@ -1,4 +1,5 @@
 
+#include <stdlib.h>
 #include <node.h>
 #include <nan.h>
 #include "reader.h"
