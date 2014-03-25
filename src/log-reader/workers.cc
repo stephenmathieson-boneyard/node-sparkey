@@ -138,7 +138,6 @@ namespace sparkey {
       , v8::Local<v8::Value>::New(v8::Null())
     };
     callback->Call(4, argv);
-    return;
   }
 
   LogReaderIteratorSkipWorker::LogReaderIteratorSkipWorker(

@@ -20,14 +20,11 @@ namespace sparkey {
       LogReader();
       ~LogReader();
 
-      static v8::Handle<v8::Value> New(const v8::Arguments &);
-
+      static NAN_METHOD(New);
       static NAN_METHOD(Open);
       static NAN_METHOD(OpenSync);
-
       static NAN_METHOD(Close);
       static NAN_METHOD(CloseSync);
-
       static NAN_METHOD(NewIterator);
   };
 }

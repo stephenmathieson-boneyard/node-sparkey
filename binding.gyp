@@ -11,13 +11,11 @@
       "sources": [
         "src/sparkey.cc",
         "src/hash.cc",
-
-        "src/writer/writer.cc",
-        "src/writer/workers.cc",
-
-        "src/reader/reader.cc",
-        "src/reader/iterator.cc",
-        "src/reader/workers.cc",
+	"src/log-writer/writer.cc",
+	"src/log-writer/workers.cc",
+	"src/log-reader/reader.cc",
+	"src/log-reader/iterator.cc",
+	"src/log-reader/workers.cc",
       ],
     }
   ]

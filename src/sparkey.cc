@@ -2,9 +2,9 @@
 #include <node.h>
 #include <v8.h>
 #include <sparkey.h>
-#include "writer/writer.h"
-#include "reader/reader.h"
-#include "reader/iterator.h"
+#include "log-writer/writer.h"
+#include "log-reader/reader.h"
+#include "log-reader/iterator.h"
 #include "hash.h"
 
 void
