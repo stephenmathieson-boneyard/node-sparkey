@@ -61,7 +61,10 @@ namespace sparkey {
     } else {
       fn = args[0].As<v8::Function>();
     }
-
+    int block_size = 10;
+    if (!options.IsEmpty() && options->Has(NanSymbol("blockSize"))) {
+      block_size = options->Get(NanSymbol("blockSize"))->NumberValue();
+    }
     bool use_snappy = NanBooleanOptionValue(
         options
       , NanSymbol("useSnappy")
@@ -70,8 +73,6 @@ namespace sparkey {
     sparkey_compression_type compression_type = use_snappy
       ? SPARKEY_COMPRESSION_SNAPPY
       : SPARKEY_COMPRESSION_NONE;
-    // TODO this really should be an option
-    int block_size = 10;
     WriterOpenWorker *worker = new WriterOpenWorker(
         self
       , block_size
@@ -86,6 +87,10 @@ namespace sparkey {
     NanScope();
     LogWriter *self = node::ObjectWrap::Unwrap<LogWriter>(args.This());
     v8::Local<v8::Object> options = v8::Local<v8::Object>::Cast(args[0]);
+    int block_size = 10;
+    if (!options.IsEmpty() && options->Has(NanSymbol("blockSize"))) {
+      block_size = options->Get(NanSymbol("blockSize"))->NumberValue();
+    }
     bool use_snappy = NanBooleanOptionValue(
         options
       , NanSymbol("useSnappy")
@@ -94,8 +99,6 @@ namespace sparkey {
     sparkey_compression_type compression_type = use_snappy
       ? SPARKEY_COMPRESSION_SNAPPY
       : SPARKEY_COMPRESSION_NONE;
-    // TODO option
-    int block_size = 10;
     sparkey_returncode rc = sparkey_logwriter_create(
         &self->writer
       , self->path

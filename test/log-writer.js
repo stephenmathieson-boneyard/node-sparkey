@@ -33,6 +33,14 @@ describe('LogWriter', function () {
         writer.close(done);
       });
     });
+
+    it('should allow block size specification', function (done) {
+      var writer = new LogWriter(log);
+      writer.open({ blockSize: 1000 }, function (err) {
+        assert.ifError(err);
+        writer.close(done);
+      });
+    });
   });
 
   describe('#openSync', function () {
@@ -51,6 +59,13 @@ describe('LogWriter', function () {
       assert(fs.existsSync(log));
       var writer = new LogWriter(log);
       writer.openSync();
+      writer.closeSync();
+    });
+
+    it('should allow block size specification', function () {
+      assert(fs.existsSync(log));
+      var writer = new LogWriter(log);
+      writer.openSync({ blockSize: 1000 });
       writer.closeSync();
     });
   });
