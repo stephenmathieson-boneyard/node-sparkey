@@ -37,7 +37,7 @@ namespace sparkey {
     NODE_SET_PROTOTYPE_METHOD(tpl, "append", Append);
     NODE_SET_PROTOTYPE_METHOD(tpl, "appendSync", AppendSync);
 
-    exports->Set(NanSymbol("LogWriter"), constructor->GetFunction());
+    exports->Set(NanSymbol("LogWriter"), tpl->GetFunction());
   }
 
   NAN_METHOD(LogWriter::New) {

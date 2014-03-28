@@ -120,23 +120,21 @@ namespace sparkey {
   void
   LogReaderIteratorNextWorker::HandleOKCallback() {
     if (key && value) {
-      v8::Local<v8::Value> argv[4] = {
-          v8::Local<v8::Value>::New(v8::Null())
-        , v8::Local<v8::Value>::New(v8::String::New(key))
-        , v8::Local<v8::Value>::New(v8::String::New(value))
-        , v8::Local<v8::Value>::New(v8::Number::New(type))
-      };
-      callback->Call(4, argv);
+        v8::Local<v8::Value> argv[4] = {
+            NanNewLocal<v8::Value>(v8::Null())
+          , NanNewLocal<v8::String>(v8::String::New(key))
+          , NanNewLocal<v8::String>(v8::String::New(value))
+          , NanNewLocal<v8::Number>(v8::Number::New(type))
+        };
+        callback->Call(4, argv);
       return;
     }
 
     // no keys left
-    v8::Local<v8::Value> argv[4] = {
-        v8::Local<v8::Value>::New(v8::Null())
-      , v8::Local<v8::Value>::New(v8::Null())
-      , v8::Local<v8::Value>::New(v8::Null())
-      , v8::Local<v8::Value>::New(v8::Null())
-    };
+    v8::Local<v8::Value> argv[4];
+    for (int i = 0; i < 4; i++) {
+      argv[i] = NanNewLocal<v8::Value>(v8::Null());
+    }
     callback->Call(4, argv);
   }
 

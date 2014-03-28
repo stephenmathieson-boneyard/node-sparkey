@@ -78,7 +78,7 @@ HashReader::Init(v8::Handle<v8::Object> exports) {
   NODE_SET_PROTOTYPE_METHOD(tpl, "open", Open);
   NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", NewIterator);
 
-  exports->Set(NanSymbol("HashReader"), constructor->GetFunction());
+  exports->Set(NanSymbol("HashReader"), tpl->GetFunction());
 }
 
 NAN_METHOD(HashReader::New) {

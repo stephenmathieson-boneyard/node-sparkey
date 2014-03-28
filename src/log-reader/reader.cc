@@ -36,7 +36,7 @@ namespace sparkey {
 
     NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", NewIterator);
 
-    exports->Set(NanSymbol("LogReader"), constructor->GetFunction());
+    exports->Set(NanSymbol("LogReader"), tpl->GetFunction());
   }
 
   NAN_METHOD(LogReader::New) {
