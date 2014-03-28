@@ -30,10 +30,9 @@ namespace sparkey {
 
     NODE_SET_PROTOTYPE_METHOD(tpl, "close", Close);
     NODE_SET_PROTOTYPE_METHOD(tpl, "closeSync", CloseSync);
-
     NODE_SET_PROTOTYPE_METHOD(tpl, "open", Open);
     NODE_SET_PROTOTYPE_METHOD(tpl, "openSync", OpenSync);
-
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getBlockSize", GetBlockSize);
     NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", NewIterator);
 
     exports->Set(NanSymbol("LogReader"), tpl->GetFunction());
@@ -44,6 +43,7 @@ namespace sparkey {
     LogReader *self = new LogReader;
     size_t pathsize;
     self->path = NanCString(args[0], &pathsize);
+    self->block_size = -1;
     self->Wrap(args.This());
     NanReturnValue(args.This());
   }
@@ -87,6 +87,19 @@ namespace sparkey {
       NanThrowError(sparkey_errstring(rc));
     }
     NanReturnUndefined();
+  }
+
+  // TODO this should probably just be a getter function (reader.blockSize)
+  NAN_METHOD(LogReader::GetBlockSize) {
+    NanScope();
+    LogReader *self = ObjectWrap::Unwrap<LogReader>(args.This());
+    // only lookup once, as it's constant
+    if (-1 == self->block_size) {
+      self->block_size = sparkey_logreader_get_compression_blocksize(
+        self->reader
+      );
+    }
+    NanReturnValue(v8::Number::New(self->block_size));
   }
 
   NAN_METHOD(LogReader::NewIterator) {

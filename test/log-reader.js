@@ -65,6 +65,22 @@ describe('LogReader', function () {
     });
   });
 
+  describe('#getBlockSize', function () {
+    it('should return the block size', function () {
+      try { rm(log); } catch (e) {}
+      var size = 1000;
+      var writer = new LogWriter(log);
+      writer.openSync({ blockSize: size });
+      for (var i = 0; i < 100; i++) {
+        writer.putSync('key' + i, 'value' + i);
+      }
+      var reader = new LogReader(log);
+      reader.openSync();
+      assert.equal(size, reader.getBlockSize());
+      reader.closeSync();
+    });
+  });
+
   describe('#iterator', function () {
     beforeEach(function () {
       try { rm(log); } catch (e) {}
