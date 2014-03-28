@@ -38,9 +38,16 @@ namespace sparkey {
     size_t hashsize;
     char *log_file = NanCString(args[0], &logsize);
     char *hash_file = NanCString(args[1], &hashsize);
-    // TODO option
+    v8::Local<v8::Function> fn;
     int hash_size = 0;
-    v8::Local<v8::Function> fn = args[2].As<v8::Function>();
+
+    if (3 == args.Length()) {
+      fn = args[2].As<v8::Function>();
+    } else {
+      hash_size = args[2]->NumberValue();
+      fn = args[3].As<v8::Function>();
+    }
+
     HashWorker *worker = new HashWorker(
         log_file
       , hash_file
@@ -57,9 +64,14 @@ namespace sparkey {
     size_t hashsize;
     char *log_file = NanCString(args[0], &logsize);
     char *hash_file = NanCString(args[1], &hashsize);
-    // TODO option
-    int hash_size = 0;
-    sparkey_returncode rc = sparkey_hash_write(hash_file, log_file, hash_size);
+    int hash_size = 3 == args.Length()
+      ? args[2]->NumberValue()
+      : 0;
+    sparkey_returncode rc = sparkey_hash_write(
+        hash_file
+      , log_file
+      , hash_size
+    );
     if (SPARKEY_SUCCESS != rc) {
       NanThrowError(sparkey_errstring(rc));
     }

@@ -32,8 +32,8 @@ function teardown() {
 }
 
 describe('hash', function () {
-  before(setup);
-  after(teardown);
+  beforeEach(setup);
+  afterEach(teardown);
 
   it('should convert an existing log to a hash', function (done) {
     sparkey.hash(log, hash, function (err) {
@@ -46,16 +46,54 @@ describe('hash', function () {
       done();
     });
   });
+
+  describe('given a hash size', function () {
+    it('should error if the hash size is invalid', function (done) {
+      sparkey.hash(log, hash, 1111, function (err) {
+        assert(err);
+        done();
+      });
+    });
+
+    // see sparkey.h#L587-L590
+    [0, 4, 8].forEach(function (hashSize) {
+      it('should allow the hash size of ' + hashSize, function (done) {
+        sparkey.hash(log, hash, hashSize, function (err) {
+          assert.ifError(err);
+          done();
+        });
+      });
+    });
+  });
 });
 
 describe('hashSync', function () {
-  before(setup);
-  after(teardown);
+  beforeEach(setup);
+  afterEach(teardown);
 
   it('should convert an existing log to a hash', function () {
     sparkey.hashSync(log, hash);
     assert(fs.existsSync(hash));
     assert(fs.existsSync(log));
+  });
+
+  describe('given a hash size', function () {
+    it('should error if the hash size is invalid', function () {
+      var err;
+      try {
+        sparkey.hashSync(log, hash, 4567);
+      } catch (e) {
+        err = e;
+      }
+      assert(err);
+    });
+
+    // see sparkey.h#L587-L590
+    [0, 4, 8].forEach(function (hashSize) {
+      it('should allow the hash size of ' + hashSize, function () {
+        sparkey.hashSync(log, hash, hashSize);
+      });
+    });
   });
 });
 
