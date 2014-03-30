@@ -1,5 +1,5 @@
 
-
+#include <stdlib.h>
 #include <node.h>
 #include <nan.h>
 #include "reader.h"
@@ -103,8 +103,8 @@ class LogReaderIteratorNextWorker : public NanAsyncWorker {
         , &actual_keylen
       );
       if (SPARKEY_SUCCESS != rc) {
-        free(keybuffer);
-        free(valuebuffer);
+        delete keybuffer;
+        delete valuebuffer;
         errmsg = strdup(sparkey_errstring(rc));
         return;
       }
@@ -118,8 +118,8 @@ class LogReaderIteratorNextWorker : public NanAsyncWorker {
         , &actual_valuelen
       );
       if (SPARKEY_SUCCESS != rc) {
-        free(keybuffer);
-        free(valuebuffer);
+        delete keybuffer;
+        delete valuebuffer;
         errmsg = strdup(sparkey_errstring(rc));
         return;
       }
