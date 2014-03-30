@@ -171,7 +171,7 @@ NAN_METHOD(LogReader::GetBlockSize) {
 
 NAN_METHOD(LogReader::NewIterator) {
   NanScope();
-  NanReturnValue(LogReaderIterator::NewInstance(args.This()));
+  NanReturnValue(LogIterator::NewInstance(args.This()));
 }
 
 } // namespace sparkey

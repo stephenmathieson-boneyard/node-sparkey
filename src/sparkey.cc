@@ -13,7 +13,7 @@ void
 InitSparkey(v8::Handle<v8::Object> exports) {
   sparkey::LogWriter::Init(exports);
   sparkey::LogReader::Init(exports);
-  sparkey::LogReaderIterator::Init();
+  sparkey::LogIterator::Init();
   sparkey::HashReader::Init(exports);
   sparkey::HashIterator::Init();
   sparkey::InitHash(exports);

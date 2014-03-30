@@ -49,8 +49,7 @@ class HashIteratorNextWorker : public NanAsyncWorker {
       wanted_keylen = sparkey_logiter_keylen(self->iterator);
       wanted_valuelen = sparkey_logiter_valuelen(self->iterator);
 
-      // calloc to ensure \0s
-      // +1 to account for trailing \0
+      // calloc/+1 to account for trailing \0
       keybuffer = (uint8_t *) calloc(wanted_keylen + 1, 1);
       valuebuffer = (uint8_t *) calloc(wanted_valuelen + 1, 1);
 
@@ -167,8 +166,7 @@ class HashIteratorGetWorker : public NanAsyncWorker {
       // get size of value
       wanted = sparkey_logiter_valuelen(self->iterator);
 
-      // calloc to ensure \0s
-      // +1 to account for trailing \0
+      // calloc/1 to account for trailing \0
       if (!(buffer = (uint8_t *) calloc(wanted + 1, 1))) {
         errmsg = strdup("Unable to allocate memory");
         return;

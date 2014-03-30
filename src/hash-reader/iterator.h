@@ -7,54 +7,56 @@
 #include "reader.h"
 
 namespace sparkey {
-  class HashIterator : public node::ObjectWrap {
-    public:
-      static v8::Persistent<v8::FunctionTemplate> constructor;
-      sparkey_hashreader *reader;
-      sparkey_logiter *iterator;
 
-      /**
-       * Init the Iterator for v8.
-       */
+class HashIterator : public node::ObjectWrap {
+  public:
+    static v8::Persistent<v8::FunctionTemplate> constructor;
+    sparkey_hashreader *reader;
+    sparkey_logiter *iterator;
 
-      static void
-      Init();
+    /**
+     * Init the Iterator for v8.
+     */
 
-      /**
-       * Create a new instance of the Iterator.
-       */
+    static void
+    Init();
 
-      static v8::Local<v8::Object>
-      NewInstance(v8::Local<v8::Object>);
+    /**
+     * Create a new instance of the Iterator.
+     */
 
-    private:
-      HashIterator();
-      ~HashIterator();
+    static v8::Local<v8::Object>
+    NewInstance(v8::Local<v8::Object>);
 
-      /**
-       * Create an instance (node).
-       */
+  private:
+    HashIterator();
+    ~HashIterator();
 
-      static NAN_METHOD(New);
+    /**
+     * Create an instance (node).
+     */
 
-      /**
-       * End the iterator's cycle and destroy the iterator itself.
-       */
+    static NAN_METHOD(New);
 
-      static NAN_METHOD(End);
+    /**
+     * End the iterator's cycle and destroy the iterator itself.
+     */
 
-      /**
-       * Get the next key/value/type.
-       */
+    static NAN_METHOD(End);
 
-      static NAN_METHOD(Next);
+    /**
+     * Get the next key/value/type.
+     */
 
-      /**
-       * Get a key's value.
-       */
+    static NAN_METHOD(Next);
 
-      static NAN_METHOD(Get);
-  };
+    /**
+     * Get a key's value.
+     */
+
+    static NAN_METHOD(Get);
+};
+
 } // namespace sparkey
 
 #endif

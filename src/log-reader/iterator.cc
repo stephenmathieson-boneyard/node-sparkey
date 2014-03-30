@@ -7,16 +7,16 @@
 
 namespace sparkey {
 
-v8::Persistent<v8::FunctionTemplate> LogReaderIterator::constructor;
+v8::Persistent<v8::FunctionTemplate> LogIterator::constructor;
 
 /**
  * Skip worker.
  */
 
-class LogReaderIteratorSkipWorker : public NanAsyncWorker {
+class LogIteratorSkipWorker : public NanAsyncWorker {
   public:
-    LogReaderIteratorSkipWorker(
-        LogReaderIterator *self
+    LogIteratorSkipWorker(
+        LogIterator *self
       , int number
       , NanCallback *callback
     ) : NanAsyncWorker(callback), self(self), number(number) {}
@@ -35,7 +35,7 @@ class LogReaderIteratorSkipWorker : public NanAsyncWorker {
     }
 
   private:
-    LogReaderIterator *self;
+    LogIterator *self;
     int number;
 };
 
@@ -43,10 +43,10 @@ class LogReaderIteratorSkipWorker : public NanAsyncWorker {
  * Next worker.
  */
 
-class LogReaderIteratorNextWorker : public NanAsyncWorker {
+class LogIteratorNextWorker : public NanAsyncWorker {
   public:
-    LogReaderIteratorNextWorker(
-        LogReaderIterator *self
+    LogIteratorNextWorker(
+        LogIterator *self
       , NanCallback *callback
     ) : NanAsyncWorker(callback), self(self) {
       key = NULL;
@@ -54,7 +54,7 @@ class LogReaderIteratorNextWorker : public NanAsyncWorker {
     }
 
 
-    ~LogReaderIteratorNextWorker() {
+    ~LogIteratorNextWorker() {
       delete key;
       delete value;
     }
@@ -83,8 +83,7 @@ class LogReaderIteratorNextWorker : public NanAsyncWorker {
       wanted_keylen = sparkey_logiter_keylen(self->iterator);
       wanted_valuelen = sparkey_logiter_valuelen(self->iterator);
 
-      // calloc to ensure \0s
-      // +1 to account for trailing \0
+      // calloc/+1 to account for trailing \0
       keybuffer = (uint8_t *) calloc(wanted_keylen + 1, 1);
       valuebuffer = (uint8_t *) calloc(wanted_valuelen + 1, 1);
 
@@ -148,27 +147,27 @@ class LogReaderIteratorNextWorker : public NanAsyncWorker {
     }
 
   private:
-    LogReaderIterator *self;
+    LogIterator *self;
     char *key;
     char *value;
     sparkey_entry_type type;
 };
 
-LogReaderIterator::LogReaderIterator() {}
+LogIterator::LogIterator() {}
 
-LogReaderIterator::~LogReaderIterator() {}
+LogIterator::~LogIterator() {}
 
 /*
  * Methods exposed to v8.
  */
 
 void
-LogReaderIterator::Init() {
+LogIterator::Init() {
   v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(
-    LogReaderIterator::New
+    LogIterator::New
   );
   NanAssignPersistent(v8::FunctionTemplate, constructor, tpl);
-  tpl->SetClassName(NanSymbol("LogReaderIterator"));
+  tpl->SetClassName(NanSymbol("LogIterator"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NODE_SET_PROTOTYPE_METHOD(tpl, "end", End);
   NODE_SET_PROTOTYPE_METHOD(tpl, "next", Next);
@@ -176,12 +175,12 @@ LogReaderIterator::Init() {
   NODE_SET_PROTOTYPE_METHOD(tpl, "isActive", IsActive);
 }
 
-NAN_METHOD(LogReaderIterator::New) {
+NAN_METHOD(LogIterator::New) {
   NanScope();
   LogReader *reader = ObjectWrap::Unwrap<LogReader>(
     args[0]->ToObject()
   );
-  LogReaderIterator *self = new LogReaderIterator;
+  LogIterator *self = new LogIterator;
   sparkey_returncode rc;
   self->reader = reader->reader;
   rc = sparkey_logiter_create(&self->iterator, self->reader);
@@ -192,22 +191,22 @@ NAN_METHOD(LogReaderIterator::New) {
   NanReturnValue(args.This());
 }
 
-NAN_METHOD(LogReaderIterator::End) {
+NAN_METHOD(LogIterator::End) {
   NanScope();
-  LogReaderIterator *self = ObjectWrap::Unwrap<LogReaderIterator>(
+  LogIterator *self = ObjectWrap::Unwrap<LogIterator>(
     args.This()
   );
   sparkey_logiter_close(&self->iterator);
   NanReturnUndefined();
 }
 
-NAN_METHOD(LogReaderIterator::Next) {
+NAN_METHOD(LogIterator::Next) {
   NanScope();
-  LogReaderIterator *self = ObjectWrap::Unwrap<LogReaderIterator>(
+  LogIterator *self = ObjectWrap::Unwrap<LogIterator>(
     args.This()
   );
   v8::Local<v8::Function> fn = args[0].As<v8::Function>();
-  LogReaderIteratorNextWorker *worker = new LogReaderIteratorNextWorker(
+  LogIteratorNextWorker *worker = new LogIteratorNextWorker(
       self
     , new NanCallback(fn)
   );
@@ -215,14 +214,14 @@ NAN_METHOD(LogReaderIterator::Next) {
   NanReturnUndefined();
 }
 
-NAN_METHOD(LogReaderIterator::Skip) {
+NAN_METHOD(LogIterator::Skip) {
   NanScope();
-  LogReaderIterator *self = ObjectWrap::Unwrap<LogReaderIterator>(
+  LogIterator *self = ObjectWrap::Unwrap<LogIterator>(
     args.This()
   );
   int number = args[0]->NumberValue();
   v8::Local<v8::Function> fn = args[1].As<v8::Function>();
-  LogReaderIteratorSkipWorker *worker = new LogReaderIteratorSkipWorker(
+  LogIteratorSkipWorker *worker = new LogIteratorSkipWorker(
       self
     , number
     , new NanCallback(fn)
@@ -231,9 +230,9 @@ NAN_METHOD(LogReaderIterator::Skip) {
   NanReturnUndefined();
 }
 
-NAN_METHOD(LogReaderIterator::IsActive) {
+NAN_METHOD(LogIterator::IsActive) {
   NanScope();
-  LogReaderIterator *self = ObjectWrap::Unwrap<LogReaderIterator>(
+  LogIterator *self = ObjectWrap::Unwrap<LogIterator>(
     args.This()
   );
   bool is_active = SPARKEY_ITER_ACTIVE == sparkey_logiter_state(
@@ -243,7 +242,7 @@ NAN_METHOD(LogReaderIterator::IsActive) {
 }
 
 v8::Local<v8::Object>
-LogReaderIterator::NewInstance(v8::Local<v8::Object> reader) {
+LogIterator::NewInstance(v8::Local<v8::Object> reader) {
   NanScope();
   v8::Local<v8::Object> instance;
   v8::Local<v8::FunctionTemplate> c = NanPersistentToLocal(

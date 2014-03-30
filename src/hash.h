@@ -3,12 +3,14 @@
 #define NODE_SPARKEY_HASH_H 1
 
 namespace sparkey {
-  void
-  InitHash(v8::Handle<v8::Object>);
 
-  NAN_METHOD(Hash);
+void
+InitHash(v8::Handle<v8::Object>);
 
-  NAN_METHOD(HashSync);
-}
+NAN_METHOD(Hash);
+
+NAN_METHOD(HashSync);
+
+} // namespace sparkey
 
 #endif
