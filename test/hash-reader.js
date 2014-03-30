@@ -175,6 +175,40 @@ describe('HashReader', function () {
           }
         });
       });
+
+      describe('#skip', function () {
+        it('should skip over a number of entries', function (done) {
+          var reader = new HashReader(hash, log);
+          reader.openSync();
+          var iterator = reader.iterator();
+          iterator.skip(55, function (err) {
+            assert.ifError(err);
+            iterator.next(function (err, key, value) {
+              assert.ifError(err);
+              assert.equal('key_55', key);
+              assert.equal('value_55', value);
+              iterator.end();
+              reader.close(done);
+            });
+          });
+        });
+
+        it('should allow users to skip past the end', function (done) {
+          var reader = new HashReader(hash, log);
+          reader.openSync();
+          var iterator = reader.iterator();
+          iterator.skip(101, function (err) {
+            assert.ifError(err);
+            iterator.next(function (err, key, value) {
+              assert.ifError(err);
+              assert.equal(null, key);
+              assert.equal(null, value);
+              iterator.end();
+              reader.close(done);
+            });
+          });
+        });
+      });
     });
 
     describe('#get', function () {

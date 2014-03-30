@@ -7,6 +7,8 @@
 
 namespace sparkey {
 
+v8::Persistent<v8::FunctionTemplate> HashIterator::constructor;
+
 class HashIteratorNextWorker : public NanAsyncWorker {
   public:
     HashIteratorNextWorker(
@@ -212,7 +214,38 @@ class HashIteratorGetWorker : public NanAsyncWorker {
     char *value;
 };
 
-v8::Persistent<v8::FunctionTemplate> HashIterator::constructor;
+
+/**
+ * Skip worker.
+ */
+
+class HashIteratorSkipWorker : public NanAsyncWorker {
+  public:
+    HashIteratorSkipWorker(
+        HashIterator *self
+      , int number
+      , NanCallback *callback
+    ) : NanAsyncWorker(callback), self(self), number(number) {}
+
+    void
+    Execute() {
+      // see https://github.com/spotify/sparkey/issues/25
+      for (int i = 0; i < number; i++) {
+        sparkey_returncode rc = sparkey_logiter_hashnext(
+            self->iterator
+          , self->reader
+        );
+        if (SPARKEY_SUCCESS != rc) {
+          errmsg = strdup(sparkey_errstring(rc));
+          return;
+        }
+      }
+    }
+
+  private:
+    HashIterator *self;
+    int number;
+};
 
 HashIterator::HashIterator() {}
 
@@ -228,9 +261,10 @@ HashIterator::Init() {
   NanAssignPersistent(v8::FunctionTemplate, constructor, tpl);
   tpl->SetClassName(NanSymbol("HashIterator"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  NODE_SET_PROTOTYPE_METHOD(tpl, "end", End);
   NODE_SET_PROTOTYPE_METHOD(tpl, "next", Next);
   NODE_SET_PROTOTYPE_METHOD(tpl, "get", Get);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "skip", Skip);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "end", End);
 }
 
 v8::Local<v8::Object>
@@ -264,15 +298,6 @@ NAN_METHOD(HashIterator::New) {
   NanReturnValue(args.This());
 }
 
-NAN_METHOD(HashIterator::End) {
-  NanScope();
-  HashIterator *self = ObjectWrap::Unwrap<HashIterator>(
-    args.This()
-  );
-  sparkey_logiter_close(&self->iterator);
-  NanReturnUndefined();
-}
-
 NAN_METHOD(HashIterator::Next) {
   NanScope();
   HashIterator *self = ObjectWrap::Unwrap<HashIterator>(
@@ -302,5 +327,31 @@ NAN_METHOD(HashIterator::Get) {
   NanAsyncQueueWorker(worker);
   NanReturnUndefined();
 }
+
+NAN_METHOD(HashIterator::Skip) {
+  NanScope();
+  HashIterator *self = ObjectWrap::Unwrap<HashIterator>(
+    args.This()
+  );
+  int number = args[0]->NumberValue();
+  v8::Local<v8::Function> fn = args[1].As<v8::Function>();
+  HashIteratorSkipWorker *worker = new HashIteratorSkipWorker(
+      self
+    , number
+    , new NanCallback(fn)
+  );
+  NanAsyncQueueWorker(worker);
+  NanReturnUndefined();
+}
+
+NAN_METHOD(HashIterator::End) {
+  NanScope();
+  HashIterator *self = ObjectWrap::Unwrap<HashIterator>(
+    args.This()
+  );
+  sparkey_logiter_close(&self->iterator);
+  NanReturnUndefined();
+}
+
 
 } // namespace sparkey

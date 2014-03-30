@@ -39,12 +39,6 @@ class HashIterator : public node::ObjectWrap {
     static NAN_METHOD(New);
 
     /**
-     * End the iterator's cycle and destroy the iterator itself.
-     */
-
-    static NAN_METHOD(End);
-
-    /**
      * Get the next key/value/type.
      */
 
@@ -55,6 +49,18 @@ class HashIterator : public node::ObjectWrap {
      */
 
     static NAN_METHOD(Get);
+
+    /**
+     * Skip over a number of entries.
+     */
+
+    static NAN_METHOD(Skip);
+
+    /**
+     * End the iterator's cycle and destroy the iterator itself.
+     */
+
+    static NAN_METHOD(End);
 };
 
 } // namespace sparkey
