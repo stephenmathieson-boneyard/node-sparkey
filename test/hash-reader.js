@@ -86,12 +86,43 @@ describe('HashReader', function () {
     });
   });
 
+  describe('#openSync', function () {
+    it('should open an existing hash/log', function () {
+      var reader = new HashReader(hash, log);
+      reader.openSync();
+      reader.iterator().end();
+      reader.closeSync();
+    });
+
+    it('should throw if the hash or log are missing', function () {
+      var err;
+      var reader = new HashReader(hash, log + 'sdfsdf');
+      try {
+        reader.openSync();
+      } catch (e) {
+        err = e;
+      }
+      assert(err);
+    });
+  });
+
   describe('#close', function () {
     it('should close the hash reader', function (done) {
       var reader = new HashReader(hash, log);
       reader.open(function (err) {
         assert.ifError(err);
         reader.close(done);
+      });
+    });
+  });
+
+  describe('#closeSync', function () {
+    it('should close the hash reader', function (done) {
+      var reader = new HashReader(hash, log);
+      reader.open(function (err) {
+        assert.ifError(err);
+        reader.closeSync();
+        done();
       });
     });
   });

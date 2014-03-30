@@ -75,7 +75,9 @@ HashReader::Init(v8::Handle<v8::Object> exports) {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   NODE_SET_PROTOTYPE_METHOD(tpl, "close", Close);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "closeSync", CloseSync);
   NODE_SET_PROTOTYPE_METHOD(tpl, "open", Open);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "openSync", OpenSync);
   NODE_SET_PROTOTYPE_METHOD(tpl, "count", Count);
   NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", NewIterator);
 
@@ -105,6 +107,20 @@ NAN_METHOD(HashReader::Open) {
   NanReturnUndefined();
 }
 
+NAN_METHOD(HashReader::OpenSync) {
+  NanScope();
+  HashReader *self = ObjectWrap::Unwrap<HashReader>(args.This());
+  sparkey_returncode rc = sparkey_hash_open(
+      &self->hash_reader
+    , self->hashfile
+    , self->logfile
+  );
+  if (SPARKEY_SUCCESS != rc) {
+    NanThrowError(sparkey_errstring(rc));
+  }
+  NanReturnUndefined();
+}
+
 NAN_METHOD(HashReader::Close) {
   NanScope();
   HashReader *self = ObjectWrap::Unwrap<HashReader>(args.This());
@@ -114,6 +130,13 @@ NAN_METHOD(HashReader::Close) {
     , new NanCallback(fn)
   );
   NanAsyncQueueWorker(worker);
+  NanReturnUndefined();
+}
+
+NAN_METHOD(HashReader::CloseSync) {
+  NanScope();
+  HashReader *self = ObjectWrap::Unwrap<HashReader>(args.This());
+  sparkey_hash_close(&self->hash_reader);
   NanReturnUndefined();
 }
 
