@@ -209,4 +209,56 @@ describe('LogWriter', function () {
       });
     });
   });
+
+  describe('#delete', function () {
+    it('should delete a key form the log', function (done) {
+      var writer = new LogWriter(log);
+      writer.openSync();
+      writer.putSync('key', 'value');
+      writer.delete('key', function (err) {
+        assert.ifError(err);
+        writer.closeSync();
+
+        var reader = new LogReader(log);
+        reader.openSync();
+        var iterator = reader.iterator();
+        // jump over our put
+        iterator.skip(1, function (err) {
+          assert.ifError(err);
+          iterator.next(function (err, key, value, type) {
+            assert.ifError(err);
+            assert.equal('key', key);
+            assert(!value);
+            assert.equal(sparkey.SPARKEY_ENTRY_DELETE, type);
+            reader.close(done);
+          });
+        });
+      });
+    });
+  });
+
+  describe('#deleteSync', function () {
+    it('should delete a key form the log', function (done) {
+      var writer = new LogWriter(log);
+      writer.openSync();
+      writer.putSync('key', 'value');
+      writer.deleteSync('key');
+      writer.closeSync();
+
+      var reader = new LogReader(log);
+      reader.openSync();
+      var iterator = reader.iterator();
+      // jump over our put
+      iterator.skip(1, function (err) {
+        assert.ifError(err);
+        iterator.next(function (err, key, value, type) {
+          assert.ifError(err);
+          assert.equal('key', key);
+          assert(!value);
+          assert.equal(sparkey.SPARKEY_ENTRY_DELETE, type);
+          reader.close(done);
+        });
+      });
+    });
+  });
 });

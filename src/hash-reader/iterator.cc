@@ -96,8 +96,19 @@ class HashIteratorNextWorker : public NanAsyncWorker {
 
     void
     HandleOKCallback() {
-      if (key) return CallbackWithValues();
-      CallbackWithNulls();
+      v8::Local<v8::Value> argv[4];
+      argv[0] = NanNewLocal<v8::Value>(v8::Null());
+      if (key && value) {
+        argv[1] = NanNewLocal<v8::String>(v8::String::New(key));
+        argv[2] = NanNewLocal<v8::String>(v8::String::New(value));
+        argv[3] = NanNewLocal<v8::Number>(v8::Number::New(type));
+      } else {
+        // no keys left
+        for (int i = 1; i < 4; i++) {
+          argv[i] = NanNewLocal<v8::Value>(v8::Null());
+        }
+      }
+      callback->Call(4, argv);
     }
 
   private:
@@ -105,26 +116,6 @@ class HashIteratorNextWorker : public NanAsyncWorker {
     char *key;
     char *value;
     sparkey_entry_type type;
-
-    void
-    CallbackWithValues() {
-      v8::Local<v8::Value> argv[4] = {
-          NanNewLocal<v8::Value>(v8::Null())
-        , NanNewLocal<v8::String>(v8::String::New(key))
-        , NanNewLocal<v8::String>(v8::String::New(value))
-        , NanNewLocal<v8::Number>(v8::Number::New(type))
-      };
-      callback->Call(4, argv);
-    }
-
-    void
-    CallbackWithNulls() {
-      v8::Local<v8::Value> argv[4];
-      for (int i = 0; i < 4; i++) {
-        argv[i] = NanNewLocal<v8::Value>(v8::Null());
-      }
-      callback->Call(4, argv);
-    }
 
     void
     SetError(sparkey_returncode rc) {

@@ -85,7 +85,7 @@ class WriterPutWorker : public NanAsyncWorker {
 
     void
     Execute() {
-      sparkey_returncode rc = self->Set(keysize, key, valuesize, value);
+      sparkey_returncode rc = self->SetKey(keysize, key, valuesize, value);
 
       delete key;
       delete value;
@@ -101,6 +101,39 @@ class WriterPutWorker : public NanAsyncWorker {
     size_t valuesize;
     char *key;
     char *value;
+};
+
+/**
+ * Delete worker.
+ */
+
+class WriterDeleteWorker : public NanAsyncWorker {
+  public:
+    WriterDeleteWorker(
+        LogWriter *self
+      , char *key
+      , size_t keysize
+      , NanCallback *callback
+    ) : NanAsyncWorker(callback)
+      , self(self)
+      , keysize(keysize)
+      , key(key) {}
+
+    void
+    Execute() {
+      sparkey_returncode rc = self->DeleteKey(keysize, key);
+
+      delete key;
+
+      if (SPARKEY_SUCCESS != rc) {
+        errmsg = strdup(sparkey_errstring(rc));
+      }
+    }
+
+  private:
+    LogWriter *self;
+    size_t keysize;
+    char *key;
 };
 
 /**
@@ -136,7 +169,6 @@ LogWriter::~LogWriter() {
   delete path;
 };
 
-
 sparkey_returncode
 LogWriter::OpenWriter(int block_size, sparkey_compression_type type) {
   // noop if we're open
@@ -171,7 +203,7 @@ LogWriter::OpenWriterForAppending() {
 }
 
 sparkey_returncode
-LogWriter::Set(
+LogWriter::SetKey(
     size_t keysize
   , const char *key
   , size_t valuesize
@@ -185,6 +217,17 @@ LogWriter::Set(
     , (uint8_t *) key
     , valuesize
     , (uint8_t *) value
+  );
+}
+
+sparkey_returncode
+LogWriter::DeleteKey(size_t keysize, const char *key) {
+  // guard
+  if (!is_open) return SPARKEY_LOG_CLOSED;
+  return sparkey_logwriter_delete(
+      writer
+    , keysize
+    , (uint8_t *) key
   );
 }
 
@@ -210,6 +253,8 @@ LogWriter::Init(v8::Handle<v8::Object> exports) {
   NODE_SET_PROTOTYPE_METHOD(tpl, "closeSync", CloseSync);
   NODE_SET_PROTOTYPE_METHOD(tpl, "put", Put);
   NODE_SET_PROTOTYPE_METHOD(tpl, "putSync", PutSync);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "delete", Delete);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "deleteSync", DeleteSync);
 
   exports->Set(NanSymbol("LogWriter"), tpl->GetFunction());
 }
@@ -329,10 +374,41 @@ NAN_METHOD(LogWriter::PutSync) {
   size_t valuesize;
   char *key = NanCString(args[0], &keysize);
   char *value = NanCString(args[1], &valuesize);
-  sparkey_returncode rc = self->Set(keysize, key, valuesize, value);
+  sparkey_returncode rc = self->SetKey(keysize, key, valuesize, value);
 
   delete key;
   delete value;
+
+  if (SPARKEY_SUCCESS != rc) {
+    NanThrowError(sparkey_errstring(rc));
+  }
+  NanReturnUndefined();
+}
+
+NAN_METHOD(LogWriter::Delete) {
+  NanScope();
+  LogWriter *self = node::ObjectWrap::Unwrap<LogWriter>(args.This());
+  size_t keysize;
+  char *key = NanCString(args[0], &keysize);
+  v8::Local<v8::Function> fn = args[1].As<v8::Function>();
+  WriterDeleteWorker *worker = new WriterDeleteWorker(
+      self
+    , key
+    , keysize
+    , new NanCallback(fn)
+  );
+  NanAsyncQueueWorker(worker);
+  NanReturnUndefined();
+}
+
+NAN_METHOD(LogWriter::DeleteSync) {
+  NanScope();
+  LogWriter *self = node::ObjectWrap::Unwrap<LogWriter>(args.This());
+  size_t keysize;
+  char *key = NanCString(args[0], &keysize);
+  sparkey_returncode rc = self->DeleteKey(keysize, key);
+
+  delete key;
 
   if (SPARKEY_SUCCESS != rc) {
     NanThrowError(sparkey_errstring(rc));

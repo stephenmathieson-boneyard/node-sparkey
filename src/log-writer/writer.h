@@ -28,11 +28,18 @@ class LogWriter : public node::ObjectWrap {
     OpenWriterForAppending();
 
     /**
-     * Internal method for writing to the writer.
+     * Internal method for setting a key in the log.
      */
 
     sparkey_returncode
-    Set(size_t, const char *, size_t, const char *);
+    SetKey(size_t, const char *, size_t, const char *);
+
+    /**
+     * Internal method for deleting a key from the log.
+     */
+
+    sparkey_returncode
+    DeleteKey(size_t, const char *);
 
     /**
      * Internal method for closing the writer.
@@ -61,6 +68,8 @@ class LogWriter : public node::ObjectWrap {
     static NAN_METHOD(AppendSync);
     static NAN_METHOD(Put);
     static NAN_METHOD(PutSync);
+    static NAN_METHOD(Delete);
+    static NAN_METHOD(DeleteSync);
     static NAN_METHOD(Close);
     static NAN_METHOD(CloseSync);
 };
