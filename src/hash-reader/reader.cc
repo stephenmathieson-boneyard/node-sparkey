@@ -76,6 +76,7 @@ HashReader::Init(v8::Handle<v8::Object> exports) {
 
   NODE_SET_PROTOTYPE_METHOD(tpl, "close", Close);
   NODE_SET_PROTOTYPE_METHOD(tpl, "open", Open);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "count", Count);
   NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", NewIterator);
 
   exports->Set(NanSymbol("HashReader"), tpl->GetFunction());
@@ -114,6 +115,13 @@ NAN_METHOD(HashReader::Close) {
   );
   NanAsyncQueueWorker(worker);
   NanReturnUndefined();
+}
+
+NAN_METHOD(HashReader::Count) {
+  NanScope();
+  HashReader *self = ObjectWrap::Unwrap<HashReader>(args.This());
+  uint64_t count = sparkey_hash_numentries(self->hash_reader);
+  NanReturnValue(v8::Number::New(count));
 }
 
 NAN_METHOD(HashReader::NewIterator) {

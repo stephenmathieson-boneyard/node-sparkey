@@ -26,6 +26,7 @@ namespace sparkey {
       static NAN_METHOD(New);
       static NAN_METHOD(Open);
       static NAN_METHOD(Close);
+      static NAN_METHOD(Count);
       static NAN_METHOD(NewIterator);
   };
 } // namespace sparkey

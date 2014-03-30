@@ -96,6 +96,17 @@ describe('HashReader', function () {
     });
   });
 
+  describe('#count', function () {
+    it('should return the number if entries in the hash', function (done) {
+      var reader = new HashReader(hash, log);
+      reader.open(function (err) {
+        assert.ifError(err);
+        assert.equal(100, reader.count());
+        reader.close(done);
+      });
+    });
+  });
+
   describe('#iterator', function () {
     it('should create a HashIterator', function (done) {
       var reader = new HashReader(hash, log);
