@@ -7,6 +7,12 @@
 
 namespace sparkey {
 
+v8::Persistent<v8::FunctionTemplate> HashReader::constructor;
+
+/**
+ * Open worker.
+ */
+
 class HashReaderOpenWorker : public NanAsyncWorker {
   public:
     HashReaderOpenWorker(
@@ -20,13 +26,7 @@ class HashReaderOpenWorker : public NanAsyncWorker {
 
     void
     Execute() {
-      sparkey_returncode rc;
-
-      rc = sparkey_hash_open(
-          &self->hash_reader
-        , self->hashfile
-        , self->logfile
-      );
+      sparkey_returncode rc = self->OpenReader();
       if (SPARKEY_SUCCESS != rc) {
         return SetError(rc);
       }
@@ -35,6 +35,10 @@ class HashReaderOpenWorker : public NanAsyncWorker {
   private:
     HashReader *self;
 };
+
+/**
+ * Close worker.
+ */
 
 class HashReaderCloseWorker : public NanAsyncWorker {
   public:
@@ -45,24 +49,46 @@ class HashReaderCloseWorker : public NanAsyncWorker {
 
     void
     Execute() {
-      sparkey_hash_close(&self->hash_reader);
+      self->CloseReader();
     }
 
   private:
     HashReader *self;
 };
 
-v8::Persistent<v8::FunctionTemplate> HashReader::constructor;
-
 HashReader::HashReader() {
   log_reader = NULL;
   hash_reader = NULL;
+  is_open = false;
 }
 
 HashReader::~HashReader() {
   delete logfile;
   delete hashfile;
 }
+
+sparkey_returncode
+HashReader::OpenReader() {
+  if (is_open) return SPARKEY_SUCCESS;
+  sparkey_returncode rc = sparkey_hash_open(
+      &hash_reader
+    , hashfile
+    , logfile
+  );
+  if (SPARKEY_SUCCESS == rc) is_open = true;
+  return rc;
+}
+
+void
+HashReader::CloseReader() {
+  if (!is_open) return;
+  sparkey_hash_close(&hash_reader);
+  is_open = false;
+}
+
+/*
+ * Methods exposed to v8.
+ */
 
 void
 HashReader::Init(v8::Handle<v8::Object> exports) {
@@ -110,11 +136,7 @@ NAN_METHOD(HashReader::Open) {
 NAN_METHOD(HashReader::OpenSync) {
   NanScope();
   HashReader *self = ObjectWrap::Unwrap<HashReader>(args.This());
-  sparkey_returncode rc = sparkey_hash_open(
-      &self->hash_reader
-    , self->hashfile
-    , self->logfile
-  );
+  sparkey_returncode rc = self->OpenReader();
   if (SPARKEY_SUCCESS != rc) {
     NanThrowError(sparkey_errstring(rc));
   }
@@ -136,7 +158,7 @@ NAN_METHOD(HashReader::Close) {
 NAN_METHOD(HashReader::CloseSync) {
   NanScope();
   HashReader *self = ObjectWrap::Unwrap<HashReader>(args.This());
-  sparkey_hash_close(&self->hash_reader);
+  self->CloseReader();
   NanReturnUndefined();
 }
 

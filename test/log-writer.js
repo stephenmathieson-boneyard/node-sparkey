@@ -155,8 +155,10 @@ describe('LogWriter', function () {
         writer.put('key', 'value', function (err) {
           assert.ifError(err);
           writer.closeSync();
+
           var reader = new LogReader(log);
           reader.openSync();
+
           var iterator = reader.iterator();
           iterator.next(function (err, key, value) {
             assert.ifError(err);
