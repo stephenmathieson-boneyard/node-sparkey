@@ -144,8 +144,8 @@ describe('LogWriter', function () {
       try { rm(log); } catch (e) {}
     });
 
-    after(function () {
-      rm(log);
+    afterEach(function () {
+      try { rm(log); } catch (e) {}
     });
 
     it('should put `key` = `value`', function (done) {
@@ -168,6 +168,14 @@ describe('LogWriter', function () {
             reader.close(done);
           });
         });
+      });
+    });
+
+    it('should fail to write to an unopen writer', function (done) {
+      var writer = new LogWriter(log);
+      writer.put('foo', 'bar', function (err) {
+        assert(err);
+        done();
       });
     });
   });

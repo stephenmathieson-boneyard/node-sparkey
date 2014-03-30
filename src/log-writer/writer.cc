@@ -177,7 +177,8 @@ LogWriter::Set(
   , size_t valuesize
   , const char *value
   ) {
-  // TODO: guard
+  // guard
+  if (!is_open) return SPARKEY_LOG_CLOSED;
   return sparkey_logwriter_put(
       writer
     , keysize
