@@ -42,7 +42,14 @@ class LogWriter : public node::ObjectWrap {
     DeleteKey(size_t, const char *);
 
     /**
-     * Internal method for closing the writer.
+     * Internal method for flushing the log.
+     */
+
+    sparkey_returncode
+    FlushWriter();
+
+    /**
+     * Internal method for closing the log.
      */
 
     sparkey_returncode
@@ -70,6 +77,8 @@ class LogWriter : public node::ObjectWrap {
     static NAN_METHOD(PutSync);
     static NAN_METHOD(Delete);
     static NAN_METHOD(DeleteSync);
+    static NAN_METHOD(Flush);
+    static NAN_METHOD(FlushSync);
     static NAN_METHOD(Close);
     static NAN_METHOD(CloseSync);
 };

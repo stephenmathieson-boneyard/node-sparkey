@@ -261,4 +261,78 @@ describe('LogWriter', function () {
       });
     });
   });
+
+  describe('#flush', function () {
+    it('should flush a log, allowing it to be read', function (done) {
+      var writer = new LogWriter(log);
+      writer.openSync();
+      for (var i = 0; i < 5; i++) {
+        writer.putSync('key_' + i, 'value_' + i);
+      }
+
+      writer.flush(function (err) {
+        assert.ifError(err);
+        var reader = new LogReader(log);
+        reader.openSync();
+        var it = reader.iterator();
+        var i = 0;
+
+        it.next(next);
+
+        function next(err, key, value, type) {
+          assert.ifError(err);
+
+          if (5 == i) {
+            assert.equal(null, key);
+            assert.equal(null, value);
+            assert.equal(null, type);
+            reader.closeSync();
+            return writer.close(done);
+          }
+
+          assert.equal(sparkey.SPARKEY_ENTRY_PUT, type);
+          assert.equal('key_' + i, key);
+          assert.equal('value_' + i, value);
+          i++;
+          it.next(next);
+        }
+      });
+    });
+  });
+
+  describe('#flushSync', function () {
+    it('should flush a log, allowing it to be read', function (done) {
+      var writer = new LogWriter(log);
+      writer.openSync();
+      for (var i = 0; i < 5; i++) {
+        writer.putSync('key_' + i, 'value_' + i);
+      }
+
+      writer.flushSync();
+      var reader = new LogReader(log);
+      reader.openSync();
+      var it = reader.iterator();
+      var i = 0;
+
+      it.next(next);
+
+      function next(err, key, value, type) {
+        assert.ifError(err);
+
+        if (5 == i) {
+          assert.equal(null, key);
+          assert.equal(null, value);
+          assert.equal(null, type);
+          reader.closeSync();
+          return writer.close(done);
+        }
+
+        assert.equal(sparkey.SPARKEY_ENTRY_PUT, type);
+        assert.equal('key_' + i, key);
+        assert.equal('value_' + i, value);
+        i++;
+        it.next(next);
+      }
+    });
+  });
 });

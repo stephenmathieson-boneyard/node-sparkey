@@ -137,6 +137,30 @@ class WriterDeleteWorker : public NanAsyncWorker {
 };
 
 /**
+ * Flush worker.
+ */
+
+class WriterFlushWorker : public NanAsyncWorker {
+  public:
+    WriterFlushWorker(
+        LogWriter *self
+      , NanCallback *callback
+    ) : NanAsyncWorker(callback)
+      , self(self) {}
+
+    void
+    Execute() {
+      sparkey_returncode rc = self->FlushWriter();
+      if (SPARKEY_SUCCESS != rc) {
+        errmsg = strdup(sparkey_errstring(rc));
+      }
+    }
+
+  private:
+    LogWriter *self;
+};
+
+/**
  * Close worker.
  */
 
@@ -184,15 +208,6 @@ LogWriter::OpenWriter(int block_size, sparkey_compression_type type) {
 }
 
 sparkey_returncode
-LogWriter::CloseWriter() {
-  // noop if we're closed
-  if (!is_open) return SPARKEY_SUCCESS;
-  sparkey_returncode rc = sparkey_logwriter_close(&writer);
-  if (SPARKEY_SUCCESS == rc) is_open = false;
-  return rc;
-}
-
-sparkey_returncode
 LogWriter::OpenWriterForAppending() {
   // XXX: sparkey lets you open an open log for appending
   // this is likely a bug.
@@ -231,6 +246,21 @@ LogWriter::DeleteKey(size_t keysize, const char *key) {
   );
 }
 
+sparkey_returncode
+LogWriter::FlushWriter() {
+  if (!is_open) return SPARKEY_LOG_CLOSED;
+  return sparkey_logwriter_flush(writer);
+}
+
+sparkey_returncode
+LogWriter::CloseWriter() {
+  // noop if we're closed
+  if (!is_open) return SPARKEY_SUCCESS;
+  sparkey_returncode rc = sparkey_logwriter_close(&writer);
+  if (SPARKEY_SUCCESS == rc) is_open = false;
+  return rc;
+}
+
 /*
  * Methods exposed to v8.
  */
@@ -253,6 +283,8 @@ LogWriter::Init(v8::Handle<v8::Object> exports) {
   NODE_SET_PROTOTYPE_METHOD(tpl, "closeSync", CloseSync);
   NODE_SET_PROTOTYPE_METHOD(tpl, "put", Put);
   NODE_SET_PROTOTYPE_METHOD(tpl, "putSync", PutSync);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "flush", Flush);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "flushSync", FlushSync);
   NODE_SET_PROTOTYPE_METHOD(tpl, "delete", Delete);
   NODE_SET_PROTOTYPE_METHOD(tpl, "deleteSync", DeleteSync);
 
@@ -410,6 +442,28 @@ NAN_METHOD(LogWriter::DeleteSync) {
 
   delete key;
 
+  if (SPARKEY_SUCCESS != rc) {
+    NanThrowError(sparkey_errstring(rc));
+  }
+  NanReturnUndefined();
+}
+
+NAN_METHOD(LogWriter::Flush) {
+  NanScope();
+  LogWriter *self = node::ObjectWrap::Unwrap<LogWriter>(args.This());
+  v8::Local<v8::Function> fn = args[0].As<v8::Function>();
+  WriterFlushWorker *worker = new WriterFlushWorker(
+      self
+    , new NanCallback(fn)
+  );
+  NanAsyncQueueWorker(worker);
+  NanReturnUndefined();
+}
+
+NAN_METHOD(LogWriter::FlushSync) {
+  NanScope();
+  LogWriter *self = node::ObjectWrap::Unwrap<LogWriter>(args.This());
+  sparkey_returncode rc = self->FlushWriter();
   if (SPARKEY_SUCCESS != rc) {
     NanThrowError(sparkey_errstring(rc));
   }
